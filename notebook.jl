@@ -369,7 +369,7 @@ end
 question_box(md"Why is the jacobian zero for all values of ``\theta``?")
 
 # ╔═╡ 0a0ceae3-e43b-441c-86ae-ce4288191641
-still_missing(md"Write your answer here.")
+md"The function θ -> maximizer is piecewise constant, as it switch from one vertex to another vertex of the polyhedron. Hence the jacobian is null almost everywhere."
 
 # ╔═╡ e6efe06c-8833-4a6b-8086-b7ebe91ee703
 md"""## Perturbed Layer"""
@@ -430,7 +430,7 @@ end
 question_box(md"What can you say about the derivatives of the perturbed maximizer?")
 
 # ╔═╡ 62821026-2a31-446a-aaa6-8921ce35414f
-still_missing(md"Write your answer here.")
+md"The derivative is not null almost everywhere, the fonction is smoothed thanks to the perturbation."
 
 # ╔═╡ 6801811b-f68a-43b4-8b78-2f27c0dc6331
 md"""
@@ -456,7 +456,9 @@ The optimization block has meaningful gradients $\implies$ we can backpropagate 
 question_box(md"What are the properties of ``\mathcal{L}_{\varepsilon}^{\text{FY}}?``")
 
 # ╔═╡ af3c852c-f22d-4938-be2a-05e9c307c734
-still_missing(md"Write your answer here.")
+md"
+The Fenchel-Young loss is positive (by Fenchel Young inequality). If ``\Omega`` is strictly convex, then ``\mathcal{L}_{\varepsilon}^{\text{FY}}`` is equal to 0 if and only if ``\theta`` and ``\bar{y}`` are Fenchel conjuguate. ``\mathcal{L}_{\varepsilon}^{\text{FY}}`` is convex in ``\theta``.
+"
 
 # ╔═╡ 701f4d68-0424-4f9f-b904-84b52f6a4745
 md"""Let's define the Fenchel-Young loss by using the `FenchelYoungLoss` wrapper from `InferOpt`:"""
@@ -489,7 +491,12 @@ contour(X, Y, Z; color=:turbo, fill=true, xlabel="θ₁", ylabel="θ₂")
 question_box(md"What happens when $\varepsilon = 0$? What happens when $\varepsilon$ increases?")
 
 # ╔═╡ 0a10bc50-9129-4ada-9c8f-28645b766181
-still_missing(md"Write your answer here.")
+md"
+When ``\varepsilon=0`` the problem is equivalent to the problem without sampling. The function f is piecewise constant, so the level lines are not smooth. 
+
+When ``\varepsilon`` increases, the loss is smoother. 
+**maybe improve here**
+"
 
 # ╔═╡ 3a84fd20-41fa-4156-9be5-a0371754b394
 md"""
@@ -716,13 +723,15 @@ Let $D = (V, A)$ be a digraph, $(c_a)_{a \in A}$ the cost associated to the arcs
 question_box(md"When the cost function is non-negative, which algorithm can we use ?")
 
 # ╔═╡ 0b5a594a-9a6b-4861-b26c-b04127752051
-still_missing(md"Write your answer here.")
+md"We can use Dijkstra algorithm."
 
 # ╔═╡ 4050b2c4-628c-4647-baea-c50236558712
 question_box(md"In the case the graph contains no absorbing cycle, which algorithm can we use ? 	On which principle is it based ?")
 
 # ╔═╡ da9bab9e-96d0-4063-9cb8-0e4433a7a7bc
-still_missing(md"Write your answer here.")
+md"
+We can use Bellman-Ford algorithm, based on dynamic programming.
+"
 
 # ╔═╡ 654066dc-98fe-4c3b-92a9-d09efdfc8080
 md"""
@@ -733,7 +742,7 @@ In the following, we will perturb or regularize the output of a neural network t
 question_box(md"In the general case, can we fix the maximum length of a feasible solution of the shortest path problem ? How ? Can we derive an dynamic programming algorithm based on this ?")
 
 # ╔═╡ f5ee68f1-3f53-44dd-8390-a39b3df4b840
-still_missing(md"Write your answer here.")
+md"If we don't have any absorbing cycles, we can bound the length of a path by the total number of nodes. We use backward dynamic programming, starting from the destination. at each iteration, we explore a new cell, and we know that we can't go twice by the same node, so the path will be at most ``w\cdot h`` nodes long."
 
 # ╔═╡ dc359052-19d9-4f29-903c-7eb9b210cbcd
 md"""
@@ -932,7 +941,12 @@ During training, we want to evaluate the quality of the predicted paths, both on
 question_box(md"What is the link in our problem between the shortest path cost ratio and the gap of a given solution with respect to the optimal solution ?")
 
 # ╔═╡ 4b1ccd02-720b-4b82-a373-2599108e60d8
-still_missing(md"Write your answer here")
+md"
+Le gap est égale au ratio - 1:
+```math
+gap(\hat{y},y) = \frac{c(\hat{y}) - c(y)}{ c(y)} = r(\hat{y},y)-1
+```
+"
 
 # ╔═╡ 9eb0ca01-bd65-48df-ab32-beaca2e38482
 md"""
@@ -1316,45 +1330,88 @@ ${y}_\varepsilon^\odot (\theta) := \mathbb{E}_Z \bigg[\operatorname{argmax}_{y \
 question_box(md"What is the advantage of this perturbation compared with the additive one in terms of combinatorial problem ? Which algorithm can we use to compute shortest paths ?")
 
 # ╔═╡ 43907e7e-8399-4edd-b3cf-0637064e72a6
-still_missing(md"Write your answer here.")
+md"
+With an additive perturbation, there is a risk that some component of ``\theta`` change sign, which prevent from using Dijkstra. Using an exponential multiplication preserve the positive sign of ``\theta``'s components. Thus we can use Dijkstra's algorithm.
+"
 
 # ╔═╡ 43d68541-84a5-4a63-9d8f-43783cc27ccc
 md"We omit the details of the loss derivations and concentrate on implementation."
-
-# ╔═╡ 5c6d39b0-9942-4173-9455-39cb3c174873
-TODO("Implement the training similarly to previous subsection, by using a multiplicative perturbation instead of the additive one.")
 
 # ╔═╡ 99468dd9-4b97-48e6-803b-489dc1cefdf8
 hint(md"You can modify the previous additive implementation below, by replacing the `PerturbedAdditive` regularization with a `PerturbedMultiplicative` one. You can also modify use `dijkstra_maximizer` instead of `belmann_maximizer` as the CO algorithm, which runs faster.")
 
 # ╔═╡ 0a0e7b32-e1f4-4d5c-8ebc-b5d06b61e6df
+begin
+	chosen_maximizer_bis = dijkstra_maximizer
+	perturbed_maximizer_bis = PerturbedMultiplicative(chosen_maximizer_bis; ε=ε, nb_samples=M)
+	loss_bis = FenchelYoungLoss(perturbed_maximizer_bis)
+	encoder_bis = deepcopy(initial_encoder)
+	imitation_flux_loss_bis(x, y, θ) = loss_bis(encoder_bis(x), y)
+end
 
+# ╔═╡ 6b4a4407-cb0f-4605-935b-4e6a41e94ecf
+loss_history_bis, gap_history_bis, final_encoder_bis = train ? train_function!(;
+	encoder=encoder_bis,
+	maximizer=chosen_maximizer_bis,
+	loss=imitation_flux_loss_bis,
+	train_data=train_dataset,
+	test_data=test_dataset,
+	lr_start=lr_start,
+	batch_size=batch_size,
+	nb_epoch=nb_epochs
+) : (zeros(nb_epochs, 2), zeros(nb_epochs + 1, 2), encoder);
+
+# ╔═╡ 164391b5-4918-42b0-a96f-d09fe139f645
+plot_loss_and_gap(loss_history_bis, gap_history_bis)
 
 # ╔═╡ f6d87e32-419a-48be-8054-f54fb6e4cef3
 question_box(md"Comment your experiments and results here")
 
 # ╔═╡ 8b46c5e6-f6ef-4372-a81d-d7eedb1a07d2
-still_missing(md"Write your answer here.")
+md"
+We observe little difference in term of convergence. However, the computing time is reduced by a factor 2.
+"
 
 # ╔═╡ 0fd29811-9e17-4c97-b9b7-ec9cc51b435f
 md"""
 ### c) Smart Predict then optimize
 """
 
-# ╔═╡ 71726572-0341-4344-9a3f-410d3bbc430a
-TODO(md"Replace the `FenchelYoungLoss` by a `SPOPlusLoss` in order to leverage the knowledge about the true costs in the train dataset.")
-
 # ╔═╡ 7ccf487c-49a1-49e9-bc19-e2f4e8a7d331
 hint(md"You can replace the `FenchelYoungLoss` by `SPOPlusLoss(true_maximizer)`, we do not need to use the `Perturbed` here.")
 
 # ╔═╡ e6f45063-e553-42ab-8344-69ff78ab520f
+begin
+	chosen_maximizer_ter = bellman_maximizer
+	loss_ter = SPOPlusLoss(chosen_maximizer_ter)
+	encoder_ter = deepcopy(initial_encoder)
+	imitation_flux_loss_ter(x, y, θ) = loss_ter(encoder_ter(x), -θ, y)
+end
 
+# ╔═╡ 2a67fc94-67c9-4c7f-8cc2-fa6d84fda834
+loss_history_ter, gap_history_ter, final_encoder_ter = train ? train_function!(;
+	encoder=encoder_ter,
+	maximizer=chosen_maximizer_ter,
+	loss=imitation_flux_loss_ter,
+	train_data=train_dataset,
+	test_data=test_dataset,
+	lr_start=lr_start,
+	batch_size=batch_size,
+	nb_epoch=nb_epochs
+) : (zeros(nb_epochs, 2), zeros(nb_epochs + 1, 2), encoder);
+
+# ╔═╡ e6d6b8e9-c1b5-4190-962c-ef6c017ef15a
+plot_loss_and_gap(loss_history_ter, gap_history_ter)
 
 # ╔═╡ 8bb55d7e-1817-4b81-8de6-ad31191d08e8
 question_box(md"Comment your experiments and results here")
 
 # ╔═╡ 8c320286-3c34-4e68-8b9c-4dcf81be1a45
-still_missing(md"Write your answer here.")
+md"
+The loss function is not the same as in the previous tests, so the scale is not comparable. However the gap are similar.
+The test loss is smaller than the training loss, but there is only 20 image in the test set.
+The computation time is similar to the multiplicative perturbation.
+"
 
 # ╔═╡ 90a47e0b-b911-4728-80b5-6ed74607833d
 md"""
@@ -1466,7 +1523,7 @@ Zygote = "~0.6.67"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.4"
+julia_version = "1.9.3"
 manifest_format = "2.0"
 project_hash = "9062f98704d047968623f509042577676b4c9d5a"
 
@@ -2582,12 +2639,12 @@ version = "0.3.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.4"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "8.4.0+0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -2596,7 +2653,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.11.0+1"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -3845,7 +3902,7 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.52.0+1"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -3875,22 +3932,22 @@ version = "1.4.1+1"
 # ╟─e279878d-9c8d-47c8-9453-3aee1118818b
 # ╟─8b7876e4-2f28-42f8-87a1-459b665cff30
 # ╠═e36da6f2-b236-4b67-983c-152a7ff54e05
-# ╟─b5b0bb58-9e02-4551-a9ba-0ba0ffceb350
-# ╟─b0616d13-41fa-4a89-adb3-bf8b27b13657
-# ╟─9adcecda-eaeb-4432-8634-a1ce868c50f5
-# ╟─21bee304-8aab-4c57-b3ab-ceec6a608320
-# ╟─2067c125-f473-4cc2-a548-87b1b0ad9011
-# ╟─d85d1e30-92f4-4bc7-8da9-3b417f51530b
-# ╟─7e46ec11-b0ff-4dc7-9939-32ad154aeb96
-# ╟─95a43871-924b-4ff1-87ac-76c33d22c9ad
-# ╟─269547da-f4ec-4746-9453-5cb8d7703da8
-# ╟─68c6b115-5873-4678-9f3a-54b72554e8d3
-# ╟─d9dbc402-383a-4aad-9f44-08f06b41ab0d
-# ╟─78312b73-42bd-42d3-b31d-83222fd8fbaa
-# ╟─4678209f-9bb9-4d3b-b031-575f2fba4916
-# ╟─3bb99c85-35de-487d-a5e7-1cd1313fd6ea
-# ╟─d447f8af-78de-4306-ba24-22851c366690
-# ╟─f5afa452-9485-4dba-93fe-277d87ad0344
+# ╠═b5b0bb58-9e02-4551-a9ba-0ba0ffceb350
+# ╠═b0616d13-41fa-4a89-adb3-bf8b27b13657
+# ╠═9adcecda-eaeb-4432-8634-a1ce868c50f5
+# ╠═21bee304-8aab-4c57-b3ab-ceec6a608320
+# ╠═2067c125-f473-4cc2-a548-87b1b0ad9011
+# ╠═d85d1e30-92f4-4bc7-8da9-3b417f51530b
+# ╠═7e46ec11-b0ff-4dc7-9939-32ad154aeb96
+# ╠═95a43871-924b-4ff1-87ac-76c33d22c9ad
+# ╠═269547da-f4ec-4746-9453-5cb8d7703da8
+# ╠═68c6b115-5873-4678-9f3a-54b72554e8d3
+# ╠═d9dbc402-383a-4aad-9f44-08f06b41ab0d
+# ╠═78312b73-42bd-42d3-b31d-83222fd8fbaa
+# ╠═4678209f-9bb9-4d3b-b031-575f2fba4916
+# ╠═3bb99c85-35de-487d-a5e7-1cd1313fd6ea
+# ╠═d447f8af-78de-4306-ba24-22851c366690
+# ╠═f5afa452-9485-4dba-93fe-277d87ad0344
 # ╟─14af0338-554a-4f71-a290-3b4f16cc6af5
 # ╟─2901d761-405a-4800-b1a7-d2a80cf8aea5
 # ╟─23f7f158-9a74-4f6b-9718-5609f458b101
@@ -3922,12 +3979,12 @@ version = "1.4.1+1"
 # ╟─f2926b6a-1ff0-4157-a6b8-a56f658f4d49
 # ╠═712c87ea-91e0-4eaa-807c-6876ee5b311f
 # ╟─5dd28e66-afd8-4c9d-bc88-b87e5e13f390
-# ╠═62821026-2a31-446a-aaa6-8921ce35414f
-# ╟─6801811b-f68a-43b4-8b78-2f27c0dc6331
+# ╟─62821026-2a31-446a-aaa6-8921ce35414f
+# ╠═6801811b-f68a-43b4-8b78-2f27c0dc6331
 # ╟─b748c794-b9b6-4e96-8f65-f34abd6b127e
-# ╠═af3c852c-f22d-4938-be2a-05e9c307c734
+# ╟─af3c852c-f22d-4938-be2a-05e9c307c734
 # ╟─701f4d68-0424-4f9f-b904-84b52f6a4745
-# ╠═d64790a7-6a02-44ca-a44f-268fea657690
+# ╟─d64790a7-6a02-44ca-a44f-268fea657690
 # ╟─87c4d949-c7d9-4f70-8fe0-f273ad655635
 # ╠═e4bf4523-94c2-457f-9dd3-74f100d2dc17
 # ╟─e8ce60c1-4981-464a-9a9b-8ac5734a5bb4
@@ -4001,13 +4058,13 @@ version = "1.4.1+1"
 # ╟─9782f5fb-7e4b-4d8a-a77a-e4f5b9a71ab5
 # ╟─596734af-cf81-43c9-a525-7ea88a209a53
 # ╠═0ae90d3d-c718-44b2-81b5-25ce43f42988
-# ╟─6a482757-8a04-4724-a3d2-33577748bd4e
+# ╠═6a482757-8a04-4724-a3d2-33577748bd4e
 # ╟─a47a12b4-976e-4250-9e19-a99f915556af
 # ╠═4b1ccd02-720b-4b82-a373-2599108e60d8
 # ╟─9eb0ca01-bd65-48df-ab32-beaca2e38482
-# ╟─26c71a94-5b30-424f-8242-c6510d41bb52
-# ╟─dd1791a8-fa59-4a36-8794-fccdcd7c912a
-# ╟─633e9fea-fba3-4fe6-bd45-d19f89cb1808
+# ╠═26c71a94-5b30-424f-8242-c6510d41bb52
+# ╠═dd1791a8-fa59-4a36-8794-fccdcd7c912a
+# ╠═633e9fea-fba3-4fe6-bd45-d19f89cb1808
 # ╟─8c8b514e-8478-4b2b-b062-56832115c670
 # ╟─93dd97e6-0d37-4d94-a3f6-c63dc856fa66
 # ╟─d35f0e8b-6634-412c-b5f3-ffd11246276c
@@ -4056,15 +4113,17 @@ version = "1.4.1+1"
 # ╟─5fe95aa5-f670-4329-a933-240a8c074dea
 # ╠═43907e7e-8399-4edd-b3cf-0637064e72a6
 # ╟─43d68541-84a5-4a63-9d8f-43783cc27ccc
-# ╟─5c6d39b0-9942-4173-9455-39cb3c174873
 # ╟─99468dd9-4b97-48e6-803b-489dc1cefdf8
 # ╠═0a0e7b32-e1f4-4d5c-8ebc-b5d06b61e6df
+# ╠═6b4a4407-cb0f-4605-935b-4e6a41e94ecf
+# ╠═164391b5-4918-42b0-a96f-d09fe139f645
 # ╟─f6d87e32-419a-48be-8054-f54fb6e4cef3
 # ╠═8b46c5e6-f6ef-4372-a81d-d7eedb1a07d2
-# ╠═0fd29811-9e17-4c97-b9b7-ec9cc51b435f
-# ╟─71726572-0341-4344-9a3f-410d3bbc430a
+# ╟─0fd29811-9e17-4c97-b9b7-ec9cc51b435f
 # ╟─7ccf487c-49a1-49e9-bc19-e2f4e8a7d331
 # ╠═e6f45063-e553-42ab-8344-69ff78ab520f
+# ╠═2a67fc94-67c9-4c7f-8cc2-fa6d84fda834
+# ╠═e6d6b8e9-c1b5-4190-962c-ef6c017ef15a
 # ╟─8bb55d7e-1817-4b81-8de6-ad31191d08e8
 # ╠═8c320286-3c34-4e68-8b9c-4dcf81be1a45
 # ╟─90a47e0b-b911-4728-80b5-6ed74607833d
