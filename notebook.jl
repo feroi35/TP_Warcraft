@@ -723,15 +723,13 @@ Let $D = (V, A)$ be a digraph, $(c_a)_{a \in A}$ the cost associated to the arcs
 question_box(md"When the cost function is non-negative, which algorithm can we use ?")
 
 # ╔═╡ 0b5a594a-9a6b-4861-b26c-b04127752051
-md"We can use Dijkstra algorithm."
+md"When the cost function is non-negative, we can use Dijkstra algorithm."
 
 # ╔═╡ 4050b2c4-628c-4647-baea-c50236558712
 question_box(md"In the case the graph contains no absorbing cycle, which algorithm can we use ? 	On which principle is it based ?")
 
 # ╔═╡ da9bab9e-96d0-4063-9cb8-0e4433a7a7bc
-md"
-We can use Bellman-Ford algorithm, based on dynamic programming.
-"
+md"In the case the graph contains no absorbing cycle, we can use Bellman-Ford algorithm. It is based on dynamic programming."
 
 # ╔═╡ 654066dc-98fe-4c3b-92a9-d09efdfc8080
 md"""
@@ -742,7 +740,17 @@ In the following, we will perturb or regularize the output of a neural network t
 question_box(md"In the general case, can we fix the maximum length of a feasible solution of the shortest path problem ? How ? Can we derive an dynamic programming algorithm based on this ?")
 
 # ╔═╡ f5ee68f1-3f53-44dd-8390-a39b3df4b840
-md"If we don't have any absorbing cycles, we can bound the length of a path by the total number of nodes. We use backward dynamic programming, starting from the destination. at each iteration, we explore a new cell, and we know that we can't go twice by the same node, so the path will be at most ``w\cdot h`` nodes long."
+md"
+If there is no absorbing cycles, the length of an optimal path is less than the total number of nodes. Indeed, going twice on the same node can not decrease the cost. In our case, the path will be at most ``w\cdot h`` nodes long.
+
+Under that condition, we can derive a dynamic programming algorithm. We give a cost to every node of the graph that we will update. 
+
+At first, only the starting point has a $0$ cost and every other node has an infinite cost. 
+
+During $|V|$ iterations, we will check the nodes accessible with a new path. If the cost of accessing this node is less than its current cost, we update it.
+
+At the end, the cost of the destination node will be the optimal cost and it is easy to recover the optimal path from the cost matrix. 
+"
 
 # ╔═╡ dc359052-19d9-4f29-903c-7eb9b210cbcd
 md"""
@@ -942,9 +950,9 @@ question_box(md"What is the link in our problem between the shortest path cost r
 
 # ╔═╡ 4b1ccd02-720b-4b82-a373-2599108e60d8
 md"
-Le gap est égale au ratio - 1:
+Le gap vaut :
 ```math
-gap(\hat{y},y) = \frac{c(\hat{y}) - c(y)}{ c(y)} = r(\hat{y},y)-1
+gap(\hat{y},y) = \frac{c(\hat{y}) - c(y)}{ c(y)} = r(\hat{y},y)-1 \geq 0
 ```
 "
 
@@ -1215,7 +1223,7 @@ In this subsection, we are in a learning by imitation setting
 imitation_flux_loss(x, y, θ) = loss(encoder(x), y)
 
 # ╔═╡ b4451d05-1ac5-4962-88d8-e59d9ca225ea
-warning_box(md"If you want to use the `train_function!` generic function defined above, the loss needs to take as argument x, y and θ in this order, even if it does not use all of them.")
+warning_box(md"If you want to use the `train_function!` generic function defined above, `imitation_flux_loss` needs to take as argument x, y and θ in this order, even if it does not use all of them.")
 
 # ╔═╡ 58b7267d-491d-40f0-b4ba-27ed0c9cc855
 md"""
@@ -1331,7 +1339,7 @@ question_box(md"What is the advantage of this perturbation compared with the add
 
 # ╔═╡ 43907e7e-8399-4edd-b3cf-0637064e72a6
 md"
-With an additive perturbation, there is a risk that some component of ``\theta`` change sign, which prevent from using Dijkstra. Using an exponential multiplication preserve the positive sign of ``\theta``'s components. Thus we can use Dijkstra's algorithm.
+With an additive perturbation, there is a risk that a component of ``\theta`` becomes negative, which prevents us from using Dijkstra. Using an exponential multiplication preserves the positive sign of ``\theta``'s components. Thus we can use Dijkstra's algorithm.
 "
 
 # ╔═╡ 43d68541-84a5-4a63-9d8f-43783cc27ccc
@@ -1408,9 +1416,10 @@ question_box(md"Comment your experiments and results here")
 
 # ╔═╡ 8c320286-3c34-4e68-8b9c-4dcf81be1a45
 md"
-The loss function is not the same as in the previous tests, so the scale is not comparable. However the gap are similar.
-The test loss is smaller than the training loss, but there is only 20 image in the test set.
-The computation time is similar to the multiplicative perturbation.
+The loss function is not the same as in the previous tests, so the scale is not comparable. However, the gaps are similar and the computation time is similar to the multiplicative perturbation.
+
+We observe that the test loss is smaller than the training loss, but there are only $20$ images in the test set, so it's a coincidence.
+
 "
 
 # ╔═╡ 90a47e0b-b911-4728-80b5-6ed74607833d
@@ -1423,14 +1432,32 @@ md"""
 When we restrict the train dataset to images $I$ and black-box cost functions $c$, we can not learn by imitation. We can instead derive a surrogate version of the regret that is differentiable (see Section 4.1 of this [paper](https://arxiv.org/pdf/2207.13513.pdf)).
 """
 
+# ╔═╡ dcd039cc-6612-4479-afc5-d59ebc7252e3
+begin
+	chosen_maximizer_quater = dijkstra_maximizer
+	perturbed_maximizer_quater = PerturbedMultiplicative(chosen_maximizer_quater; ε=ε, nb_samples=M)
+	regret_pert = Pushforward(perturbed_maximizer_quater, cost)
+	encoder_quater = deepcopy(initial_encoder)
+	regret_loss_quater(x, y, θ) = regret_pert(encoder_quater(x))
+end
+
+# ╔═╡ aee8b50a-bfa8-4bbf-9f17-8a8b4557d77d
+loss_history_quater, gap_history_quater, final_encoder_quater = train ? train_function!(;
+	encoder=encoder_quater,
+	maximizer=chosen_maximizer_quater,
+	loss=regret_loss_quater,
+	train_data=train_dataset,
+	test_data=test_dataset,
+	lr_start=lr_start,
+	batch_size=batch_size,
+	nb_epoch=nb_epochs
+) : (zeros(nb_epochs, 2), zeros(nb_epochs + 1, 2), encoder);
+
 # ╔═╡ 418755cb-765f-4a8c-805d-ceac36c7706c
 TODO(md"Modify the code above to learn by experience using a multiplicative perturbation and the black-box cost function.")
 
 # ╔═╡ 4625c35f-cd2d-4883-838a-57276e83d241
 hint(md"Use the `PushForward` wrapper to define a learn by experience loss.")
-
-# ╔═╡ 0ddf43c5-6ba0-4d22-80ad-6ca8cf92f69a
-
 
 # ╔═╡ 00cb431b-dced-45fd-a191-12bd59a096f5
 question_box(md"Comment your experiments and results here")
@@ -1523,7 +1550,7 @@ Zygote = "~0.6.67"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.3"
+julia_version = "1.9.4"
 manifest_format = "2.0"
 project_hash = "9062f98704d047968623f509042577676b4c9d5a"
 
@@ -2639,12 +2666,12 @@ version = "0.3.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.3"
+version = "0.6.4"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "7.84.0+0"
+version = "8.4.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -2653,7 +2680,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.10.2+0"
+version = "1.11.0+1"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -3902,7 +3929,7 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.48.0+0"
+version = "1.52.0+1"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -3968,10 +3995,10 @@ version = "1.4.1+1"
 # ╟─1ca1d8a3-d7bc-4386-8142-29c5cf2a87a0
 # ╠═f370c7c5-0f39-4efa-a298-d913a591412d
 # ╟─2773083a-0f6a-4c28-8da3-2a4ee4efdb6f
-# ╠═0a0ceae3-e43b-441c-86ae-ce4288191641
+# ╟─0a0ceae3-e43b-441c-86ae-ce4288191641
 # ╟─e6efe06c-8833-4a6b-8086-b7ebe91ee703
 # ╟─381c10e9-25c2-4ec0-8c37-48f7099abd03
-# ╠═0a205ed0-e52d-4017-b78f-23c7447063f3
+# ╟─0a205ed0-e52d-4017-b78f-23c7447063f3
 # ╟─ded783ba-7b43-4351-8951-a452e1e26e3c
 # ╟─98c6fffd-26d2-4d94-ba99-1f3a59197079
 # ╟─b3fd69fb-a1dd-4102-9ced-eb0566821a57
@@ -3980,7 +4007,7 @@ version = "1.4.1+1"
 # ╠═712c87ea-91e0-4eaa-807c-6876ee5b311f
 # ╟─5dd28e66-afd8-4c9d-bc88-b87e5e13f390
 # ╟─62821026-2a31-446a-aaa6-8921ce35414f
-# ╠═6801811b-f68a-43b4-8b78-2f27c0dc6331
+# ╟─6801811b-f68a-43b4-8b78-2f27c0dc6331
 # ╟─b748c794-b9b6-4e96-8f65-f34abd6b127e
 # ╟─af3c852c-f22d-4938-be2a-05e9c307c734
 # ╟─701f4d68-0424-4f9f-b904-84b52f6a4745
@@ -3993,7 +4020,7 @@ version = "1.4.1+1"
 # ╟─8163d699-ce03-4e12-ad54-d70f8eeaf283
 # ╠═7ffc8bc9-0e80-4805-8c96-4b672d77a3c3
 # ╟─e0363b40-2ba8-4af6-abeb-fdc2f183ded1
-# ╠═0a10bc50-9129-4ada-9c8f-28645b766181
+# ╟─0a10bc50-9129-4ada-9c8f-28645b766181
 # ╟─3a84fd20-41fa-4156-9be5-a0371754b394
 # ╟─ee87d357-318f-40f1-a82a-fe680286e6cd
 # ╟─5c231f46-02b0-43f9-9101-9eb222cff972
@@ -4034,15 +4061,15 @@ version = "1.4.1+1"
 # ╟─dfac541d-a1fe-4822-9bc4-06d1a4f4ec6a
 # ╠═0b5a594a-9a6b-4861-b26c-b04127752051
 # ╟─4050b2c4-628c-4647-baea-c50236558712
-# ╠═da9bab9e-96d0-4063-9cb8-0e4433a7a7bc
+# ╟─da9bab9e-96d0-4063-9cb8-0e4433a7a7bc
 # ╟─654066dc-98fe-4c3b-92a9-d09efdfc8080
 # ╟─9f902433-9a21-4b2d-b5d7-b18a04bf6022
-# ╠═f5ee68f1-3f53-44dd-8390-a39b3df4b840
+# ╟─f5ee68f1-3f53-44dd-8390-a39b3df4b840
 # ╟─dc359052-19d9-4f29-903c-7eb9b210cbcd
 # ╟─b93009a7-533f-4c5a-a4f5-4c1d88cc1be4
-# ╠═20999544-cefd-4d00-a68c-cb6cfea36b1a
+# ╟─20999544-cefd-4d00-a68c-cb6cfea36b1a
 # ╟─2c78fd8f-2a34-4307-8762-b6d636fa26f0
-# ╠═b2ea7e31-82c6-4b01-a8c6-26c3d7a2d562
+# ╟─b2ea7e31-82c6-4b01-a8c6-26c3d7a2d562
 # ╟─927147a9-6308-4b84-9688-ddcdf09c83d0
 # ╟─76d4caa4-a10c-4247-a624-b6bfa5a743bc
 # ╟─91ec470d-f2b5-41c1-a50f-fc337995c73f
@@ -4058,13 +4085,13 @@ version = "1.4.1+1"
 # ╟─9782f5fb-7e4b-4d8a-a77a-e4f5b9a71ab5
 # ╟─596734af-cf81-43c9-a525-7ea88a209a53
 # ╠═0ae90d3d-c718-44b2-81b5-25ce43f42988
-# ╠═6a482757-8a04-4724-a3d2-33577748bd4e
+# ╟─6a482757-8a04-4724-a3d2-33577748bd4e
 # ╟─a47a12b4-976e-4250-9e19-a99f915556af
-# ╠═4b1ccd02-720b-4b82-a373-2599108e60d8
+# ╟─4b1ccd02-720b-4b82-a373-2599108e60d8
 # ╟─9eb0ca01-bd65-48df-ab32-beaca2e38482
-# ╠═26c71a94-5b30-424f-8242-c6510d41bb52
-# ╠═dd1791a8-fa59-4a36-8794-fccdcd7c912a
-# ╠═633e9fea-fba3-4fe6-bd45-d19f89cb1808
+# ╟─26c71a94-5b30-424f-8242-c6510d41bb52
+# ╟─dd1791a8-fa59-4a36-8794-fccdcd7c912a
+# ╟─633e9fea-fba3-4fe6-bd45-d19f89cb1808
 # ╟─8c8b514e-8478-4b2b-b062-56832115c670
 # ╟─93dd97e6-0d37-4d94-a3f6-c63dc856fa66
 # ╟─d35f0e8b-6634-412c-b5f3-ffd11246276c
@@ -4111,26 +4138,27 @@ version = "1.4.1+1"
 # ╟─1ff198ea-afd5-4acc-bb67-019051ff149b
 # ╟─44ece9ce-f9f1-46f3-90c6-cb0502c92c67
 # ╟─5fe95aa5-f670-4329-a933-240a8c074dea
-# ╠═43907e7e-8399-4edd-b3cf-0637064e72a6
+# ╟─43907e7e-8399-4edd-b3cf-0637064e72a6
 # ╟─43d68541-84a5-4a63-9d8f-43783cc27ccc
 # ╟─99468dd9-4b97-48e6-803b-489dc1cefdf8
 # ╠═0a0e7b32-e1f4-4d5c-8ebc-b5d06b61e6df
 # ╠═6b4a4407-cb0f-4605-935b-4e6a41e94ecf
 # ╠═164391b5-4918-42b0-a96f-d09fe139f645
 # ╟─f6d87e32-419a-48be-8054-f54fb6e4cef3
-# ╠═8b46c5e6-f6ef-4372-a81d-d7eedb1a07d2
+# ╟─8b46c5e6-f6ef-4372-a81d-d7eedb1a07d2
 # ╟─0fd29811-9e17-4c97-b9b7-ec9cc51b435f
 # ╟─7ccf487c-49a1-49e9-bc19-e2f4e8a7d331
 # ╠═e6f45063-e553-42ab-8344-69ff78ab520f
 # ╠═2a67fc94-67c9-4c7f-8cc2-fa6d84fda834
 # ╠═e6d6b8e9-c1b5-4190-962c-ef6c017ef15a
 # ╟─8bb55d7e-1817-4b81-8de6-ad31191d08e8
-# ╠═8c320286-3c34-4e68-8b9c-4dcf81be1a45
+# ╟─8c320286-3c34-4e68-8b9c-4dcf81be1a45
 # ╟─90a47e0b-b911-4728-80b5-6ed74607833d
 # ╟─5d79b8c1-beea-4ff9-9830-0f5e1c4ef29f
+# ╠═dcd039cc-6612-4479-afc5-d59ebc7252e3
+# ╠═aee8b50a-bfa8-4bbf-9f17-8a8b4557d77d
 # ╟─418755cb-765f-4a8c-805d-ceac36c7706c
 # ╟─4625c35f-cd2d-4883-838a-57276e83d241
-# ╠═0ddf43c5-6ba0-4d22-80ad-6ca8cf92f69a
 # ╟─00cb431b-dced-45fd-a191-12bd59a096f5
 # ╠═2844aedb-73cf-420d-bbc0-8a74c4133eea
 # ╟─a5bfd185-aa77-4e46-a6b6-d43c4785a7fa
