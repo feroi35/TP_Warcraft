@@ -1422,8 +1422,8 @@ loss_history_ter, gap_history_ter, final_encoder_ter = train3 ? train_function!(
 	test_data=test_dataset,
 	lr_start=lr_start,
 	batch_size=batch_size,
-	nb_epoch=nb_epochs
-) : (zeros(nb_epochs, 2), zeros(nb_epochs + 1, 2), encoder);
+	nb_epoch=2*nb_epochs
+) : (zeros(2*nb_epochs, 2), zeros(2*nb_epochs + 1, 2), encoder);
 
 # ╔═╡ e6d6b8e9-c1b5-4190-962c-ef6c017ef15a
 plot_loss_and_gap(loss_history_ter, gap_history_ter)
@@ -1436,6 +1436,8 @@ md"
 The loss function is not the same as in the previous pieces of training, so the loss scale is not comparable. However, the gaps and the computation time are similar to the multiplicative perturbation.
 
 We observe that the test loss is smaller than the training loss, but it is not that surprising because there are only $20$ images in the test set. It is too small to make accurate statements.
+
+Besides, one could expect a smaller gap for the SPO+ loss, because it uses more information than the other losses. It is not visible for 20 epochs, but unlike other methods, the gap keep on decreasing after 20 epochs (slower than before).
 "
 
 # ╔═╡ 90a47e0b-b911-4728-80b5-6ed74607833d
@@ -1538,13 +1540,15 @@ md"""
 For the moment, we have only considered perturbations to derive meaningful gradient information. We now focus on a half square norm regularization.
 """
 
-# ╔═╡ a96e6942-06ab-42d3-a7e5-9c431a676d15
-TODO(md"Based on the functions `scaled_half_square_norm` and `grad_scaled_half_square_norm`, use the `RegularizedFrankWolfe` implementation of [`InferOpt.jl`](https://axelparmentier.github.io/InferOpt.jl/dev/algorithms/) to learn by experience. Modify the cells below to do so.", heading="TODO (bonus)")
-
 # ╔═╡ 201ec4fd-01b1-49c4-a104-3d619ffb447b
 md"""
 The following cell defines the scaled half square norm function and its gradient.
 """
+
+# ╔═╡ 5887b1d6-4a16-4cc6-9d32-11ef2b7df219
+danger(md"Click the checkbox to activate the training cell 7 $(@bind train7 CheckBox()) 
+
+It may take some time to run and affect the reactivity of the notebook. Then you can read what follows.")
 
 # ╔═╡ 8b544491-b892-499f-8146-e7d1f02aaac1
 begin
@@ -1556,11 +1560,37 @@ begin
 	)
 end;
 
+# ╔═╡ ecf10d63-3f23-4ce0-ac93-16d0e3a7ae8f
+begin
+	chosen_maximizer_7 = dijkstra_maximizer
+	perturbed_maximizer_7 = RegularizedFrankWolfe(chosen_maximizer_7, scaled_half_square_norm, grad_scaled_half_square_norm, frank_wolfe_kwargs)
+	regret_pert_7 = Pushforward(perturbed_maximizer_quater, cost)
+	encoder_7 = deepcopy(initial_encoder)
+	experience_flux_loss_7(x, y, θ) = regret_pert_7(encoder_7(x); c_true=θ)
+end
+
+# ╔═╡ 007253b5-f9ac-4246-9b94-e927eeada6c1
+loss_history_7, gap_history_7, final_encoder_7 = train7 ? train_function!(;
+	encoder=encoder_7,
+	maximizer=chosen_maximizer_7,
+	loss=experience_flux_loss_7,
+	train_data=train_dataset,
+	test_data=test_dataset,
+	lr_start=lr_start,
+	batch_size=batch_size,
+	nb_epoch=nb_epochs
+) : (zeros(nb_epochs, 2), zeros(nb_epochs + 1, 2), encoder);
+
+# ╔═╡ 45c8aa18-3f8e-4144-a8d8-835ccf120eb7
+plot_loss_and_gap(loss_history_7, gap_history_7)
+
 # ╔═╡ b0769c65-9b86-496e-85fc-a8dc43c55576
 question_box(md"Comment your experiments and results here")
 
 # ╔═╡ d4a3de84-668d-4a89-b677-2a6cd2c24bb6
-still_missing(md"Write your answer here.")
+md"
+The training is quite fast compared to the other method, and reach similar gaps for the training set. However, we observe some overfitting after around 13 epochs with an augmentation of the gap for for the testing set. 
+"
 
 # ╔═╡ 09d3cb7b-83b9-4df9-8e3e-31e5bf8cdfc9
 md"""
@@ -1654,7 +1684,7 @@ Zygote = "~0.6.67"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.4"
+julia_version = "1.9.3"
 manifest_format = "2.0"
 project_hash = "9062f98704d047968623f509042577676b4c9d5a"
 
@@ -2770,12 +2800,12 @@ version = "0.3.1"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.4"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "8.4.0+0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -2784,7 +2814,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.11.0+1"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -4033,7 +4063,7 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.52.0+1"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -4275,11 +4305,14 @@ version = "1.4.1+1"
 # ╟─fb4e3c95-d6e0-4f85-914f-e9afb706d9e1
 # ╟─a5bfd185-aa77-4e46-a6b6-d43c4785a7fa
 # ╟─a7b6ecbd-1407-44dd-809e-33311970af12
-# ╠═a96e6942-06ab-42d3-a7e5-9c431a676d15
 # ╟─201ec4fd-01b1-49c4-a104-3d619ffb447b
+# ╟─5887b1d6-4a16-4cc6-9d32-11ef2b7df219
 # ╠═8b544491-b892-499f-8146-e7d1f02aaac1
+# ╠═ecf10d63-3f23-4ce0-ac93-16d0e3a7ae8f
+# ╠═007253b5-f9ac-4246-9b94-e927eeada6c1
+# ╠═45c8aa18-3f8e-4144-a8d8-835ccf120eb7
 # ╟─b0769c65-9b86-496e-85fc-a8dc43c55576
-# ╠═d4a3de84-668d-4a89-b677-2a6cd2c24bb6
+# ╟─d4a3de84-668d-4a89-b677-2a6cd2c24bb6
 # ╟─09d3cb7b-83b9-4df9-8e3e-31e5bf8cdfc9
 # ╟─88cba67e-349b-45eb-bb20-a97fa753e390
 # ╟─fa1ca375-58c0-423a-9e6c-e6441894bde1
